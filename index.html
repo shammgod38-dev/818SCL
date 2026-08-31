@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta
+  name="apple-mobile-web-app-capable"
+  content="yes">
+
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="default">
+
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<!-- ======================================================
+DESKTOP SIDEBAR
+====================================================== -->
+
+<aside class="sidebar">
+
+
+  <div class="brand">
+
+    <div class="brand-number">
+
+      818
+
+    </div>
+
+    <div class="brand-company">
+
+      VENTURES INC.
+
+    </div>
+
+    <div class="brand-line">
+    </div>
+
+  </div>
+
+
+  <div class="sidebar-section">
+
+    Monitor
+
+  </div>
+
+
+  <div class="nav">
+
+
+    <button
+      class="nav-btn"
+      onclick="openOverview(this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        Overview
+
+      </span>
+
+    </button>
+
+
+    <button
+      class="nav-btn"
+      onclick="openDSP(1,this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        DSP 1
+
+      </span>
+
+    </button>
+
+
+    <button
+      class="nav-btn"
+      onclick="openDSP(2,this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        DSP 2
+
+      </span>
+
+    </button>
+
+
+    <button
+      class="nav-btn"
+      onclick="openDSP(3,this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        DSP 3
+
+      </span>
+
+    </button>
+
+
+    <button
+      class="nav-btn active"
+      onclick="openDSP(4,this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        DSP 4
+
+      </span>
+
+    </button>
+
+
+  </div>
+
+
+  <div class="sidebar-section">
+
+    Review
+
+  </div>
+
+
+  <div class="nav">
+
+
+    <button
+      class="nav-btn"
+      onclick=
+      "openAllExceptions(this)">
+
+      <span class="nav-left">
+
+        <span class="nav-dot">
+        </span>
+
+        Exceptions
+
+      </span>
+
+      <span class="nav-pill">
+
+        ALL
+
+      </span>
+
+    </button>
+
+
+  </div>
+
+
+  <div class="review-box">
+
+    <div class="review-box-title">
+
+      SCL Review
+
+    </div>
+
+    <div class="review-box-text">
+
+      Check jumped customers,
+      new accounts,
+      registration issues
+      and temporary mappings.
+
+    </div>
+
+  </div>
+
+
+  <div class="sidebar-footer">
+
+    <div class="footer-company">
+
+      818 VENTURES INC.
+
+    </div>
+
+    <div class="footer-sub">
+
+      Sales Operations
+
+    </div>
+
+  </div>
+
+
+</aside>
+
+
+<!-- ======================================================
+MAIN
+====================================================== -->
+
+<section class="main">
+
+
+<header class="topbar">
+
+
+  <div class="app-title">
+
+    <strong>
+
+      818 DSP Sales & SCL Monitor
+
+    </strong>
+
+    <span>
+
+      Sales • Scheduled Calls • Customer Coverage
+
+    </span>
+
+  </div>
+
+
+  <div class="top-actions">
+
+
+    <select
+      id="monthSelect"
+      onchange="changeMonth()">
+    </select>
+
+
+    <button
+      class="refresh"
+      onclick="refreshCurrent()">
+
+      ↻ Refresh
+
+    </button>
+
+
+  </div>
+
+
+</header>
+
+
+<main
+  id="content"
+  class="content">
+</main>
+
+
+</section>
+
+
+</div>
+
+
+<!-- ======================================================
+DETAIL DRAWER
+====================================================== -->
+
+<div
+  id="modal"
+  class="modal"
+  onclick="modalBg(event)">
+
+
+  <div class="drawer">
+
+
+    <div class="drawer-head">
+
+
+      <div>
+
+        <h2
+          id="modalName">
+        </h2>
+
+        <div
+          id="modalInfo"
+          class="muted">
+        </div>
+
+      </div>
+
+
+      <button
+        class="close-btn"
+        onclick="closeModal()">
+
+        ×
+
+      </button>
+
+
+    </div>
+
+
+    <div
+      id="modalBody">
+    </div>
+
+
+  </div>
+
+
+</div>
+
+
+<!-- ======================================================
+LOADING
+====================================================== -->
+
+<div
+  id="loading"
+  class="loading">
+
+  <div class="loader">
+
+    818 • Loading dashboard...
+
+  </div>
+
+</div>
+
+
+<!-- ======================================================
+MOBILE BOTTOM NAV
+====================================================== -->
+
+<div class="mobile-bottom-nav">
+
+
+  <button
+    id="mobileOverviewBtn"
+    class="mobile-nav-btn"
+    onclick=
+    "mobileOverview(this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    Overview
+
+  </button>
+
+
+  <button
+    id="mobileDSP1Btn"
+    class="mobile-nav-btn"
+    onclick=
+    "mobileDSP(1,this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    DSP 1
+
+  </button>
+
+
+  <button
+    id="mobileDSP2Btn"
+    class="mobile-nav-btn"
+    onclick=
+    "mobileDSP(2,this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    DSP 2
+
+  </button>
+
+
+  <button
+    id="mobileDSP3Btn"
+    class="mobile-nav-btn"
+    onclick=
+    "mobileDSP(3,this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    DSP 3
+
+  </button>
+
+
+  <button
+    id="mobileDSP4Btn"
+    class="mobile-nav-btn active"
+    onclick=
+    "mobileDSP(4,this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    DSP 4
+
+  </button>
+
+
+  <button
+    id="mobileExceptionsBtn"
+    class="mobile-nav-btn"
+    onclick=
+    "mobileExceptions(this)">
+
+    <span class="mobile-nav-dot">
+    </span>
+
+    Review
+
+  </button>
+
+
+</div>
+
+
+<script src="app.js"></script>
+
+
+</body>
+
+</html>

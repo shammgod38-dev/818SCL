@@ -1,18 +1,24 @@
-# 818 DSP Sales & SCL Monitor
+# 818 DSP Sales & SCL Monitor — GitHub Version
 
-## 1. Apps Script backend
-Replace your current `Code.gs` with the included `Code.gs`. Deploy as a Web App:
-- Execute as: Me
-- Who has access: Anyone
-- Copy the deployed URL ending in `/exec`.
+This frontend is designed for GitHub Pages and uses Google Apps Script as the JSONP API for the Google Sheet backend.
 
-## 2. Connect the GitHub frontend
-Open `app.js` and replace:
-`PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE`
-with your Apps Script `/exec` URL.
+## Included features
+- DSP 1–4 SCL performance dashboard
+- Overview and all-exceptions review
+- Customer aliases / temporary sales mapping
+- Actual Frequency based on real monthly order activity, normalized to the observed Monday–Saturday work period
+- Assigned Frequency vs Actual Frequency review
+- Weekly order activity in customer details
+- Downloadable DSP Manager PDF report
+- Downloadable CSV report
+- Mobile-friendly interface
 
-## 3. GitHub Pages
-Upload `index.html`, `style.css`, and `app.js` to the root of your GitHub repository.
-Then go to Settings > Pages > Deploy from a branch > main > / (root).
+## Setup
+1. Paste `Code.gs` into the Apps Script project attached to the Google Sheet.
+2. Deploy Apps Script as a Web App: Execute as **Me**, access **Anyone**.
+3. Copy the deployed `/exec` URL.
+4. Paste it into `API_URL` at the top of `app.js`.
+5. Upload `index.html`, `style.css`, `app.js`, and `app-icon.png` to the GitHub repository.
+6. Enable GitHub Pages from the `main` branch, root folder.
 
-Your Google Sheet remains the database. `CUSTOMER ALIAS`, `SCL MASTER`, and `SALES DATA BEATROUTE` continue to be used by the backend.
+PDF export uses jsPDF and jsPDF-AutoTable loaded from jsDelivr.

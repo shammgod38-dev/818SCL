@@ -573,6 +573,50 @@ select,
 }
 
 
+.report-btn {
+  padding:10px 13px;
+  border:1px solid var(--green);
+  border-radius:10px;
+  background:var(--green);
+  color:white;
+  cursor:pointer;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.report-btn.secondary {
+  border-color:var(--line);
+  background:white;
+  color:var(--green-dark);
+}
+
+.report-btn:hover,
+.refresh:hover {
+  transform:translateY(-1px);
+}
+
+.freq-review {
+  display:inline-block;
+  margin-top:4px;
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:7px;
+  font-weight:900;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.freq-review.ok { background:var(--green-soft); color:var(--green-dark); }
+.freq-review.mild { background:var(--yellow-soft); color:var(--yellow); }
+.freq-review.review { background:var(--orange-soft); color:var(--orange); }
+.freq-review.higher { background:var(--blue-soft); color:var(--blue); }
+.freq-review.noorder { background:var(--red-soft); color:var(--red); }
+
+.frequency-review-panel {
+  border-top:3px solid var(--gold);
+}
+
+
 .content {
 
   max-width:1600px;
@@ -1625,6 +1669,21 @@ FORCED MOBILE MODE
     minmax(0,1fr) auto;
 
   gap:8px;
+}
+
+.mobile-device .report-btn {
+  min-width:72px;
+  height:39px;
+  padding:8px 10px;
+  font-size:10px;
+}
+
+.mobile-device .top-actions .report-btn:first-of-type {
+  grid-column:1 / 2;
+}
+
+.mobile-device .top-actions .report-btn.secondary {
+  grid-column:2 / 3;
 }
 
 

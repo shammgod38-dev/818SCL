@@ -3,7 +3,7 @@ GITHUB -> GOOGLE APPS SCRIPT API
 Paste your deployed Apps Script /exec URL below.
 ========================================================= */
 
-const API_URL = 'https://script.google.com/macros/s/AKfycby10dKZ1j4KMjCsJCgC34li3QLOu-PUDwMbpJuDFxIfXbaeMw4ZT_d88YhyKPX-5AzwUg/exec';
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
 function apiCall(action, params = {}) {
   return new Promise((resolve, reject) => {
@@ -642,8 +642,7 @@ function renderDSP(
           <div class=
             "panel-sub">
 
-            Customer Name /
-            BeatRoute Name
+            Set frequency vs actual order behavior • Actual frequency is normalized to the observed Mon–Sat work period
 
           </div>
 
@@ -722,7 +721,9 @@ function renderDSP(
                   BeatRoute Name
                 </th>
 
-                <th>Freq.</th>
+                <th>Set Freq.</th>
+
+                <th>Actual Freq.</th>
 
                 <th>
                   Order Activity
@@ -773,6 +774,9 @@ function renderDSP(
 
 
     </div>
+
+
+    ${frequencyReviewSection(data.customers)}
 
 
     <div class=
@@ -867,6 +871,108 @@ function renderDSP(
 
 
 /* =========================================================
+FREQUENCY ANALYSIS UI
+========================================================= */
+
+function frequencyReviewBadge(status) {
+
+  const value =
+    String(status || '');
+
+  if (!value || value === 'MATCHES') {
+    return '<div class="freq-review ok">Matches</div>';
+  }
+
+  if (value === 'SLIGHTLY LOWER') {
+    return '<div class="freq-review mild">Slightly lower</div>';
+  }
+
+  if (value === 'ACTUAL HIGHER') {
+    return '<div class="freq-review higher">Actual higher</div>';
+  }
+
+  if (value === 'NO ORDER') {
+    return '<div class="freq-review noorder">No order</div>';
+  }
+
+  return '<div class="freq-review review">Review frequency</div>';
+}
+
+
+function frequencyReviewSection(customers) {
+
+  const rows =
+    (customers || [])
+      .filter(c =>
+        c.frequencyReview === 'REVIEW FREQUENCY' ||
+        c.frequencyReview === 'ACTUAL HIGHER'
+      );
+
+  if (!rows.length) return '';
+
+  return `
+    <div class="section-title">
+      <strong>Frequency Review</strong>
+      <span>Assigned SCL frequency vs actual monthly order activity</span>
+    </div>
+
+    <div class="panel frequency-review-panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Set</th>
+              <th>Actual</th>
+              <th>Avg / Week</th>
+              <th>Order Days</th>
+              <th>Review</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(c => `
+              <tr>
+                <td><strong>${esc(c.customerName)}</strong></td>
+                <td>${esc(c.frequency || '-')}</td>
+                <td><strong>${esc(c.actualFrequency || 'F0')}</strong></td>
+                <td>${esc(c.averageOrdersPerWeek || 0)}</td>
+                <td>${c.orderDays}</td>
+                <td>${frequencyReviewBadge(c.frequencyReview)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+
+function weeklyFrequencyBreakdown(c) {
+
+  const weeks =
+    c.weeklyOrderActivity || [];
+
+  if (!weeks.length) return '';
+
+  return `
+    <div style="margin:20px 0 9px;font-size:12px;font-weight:900;">
+      Weekly Frequency Activity
+    </div>
+
+    <div class="order-list">
+      ${weeks.map(w => `
+        <div class="order-row">
+          <span>Week of ${esc(w.weekStart)}</span>
+          <strong>${w.orderDays} / ${w.availableDays} working days</strong>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+
+/* =========================================================
 DESKTOP CUSTOMER ROWS
 ========================================================= */
 
@@ -880,7 +986,7 @@ function desktopCustomerRows(
 
       <tr>
 
-        <td colspan="7">
+        <td colspan="8">
 
           <div class="empty">
 
@@ -984,9 +1090,24 @@ function desktopCustomerRows(
 
         <td>
 
-          ${esc(
-            c.frequency
-          )}
+          <span class="badge green">
+            ${esc(c.frequency || '-')}
+          </span>
+
+        </td>
+
+
+        <td>
+
+          <div class="number">
+            ${esc(c.actualFrequency || 'F0')}
+          </div>
+
+          <div class="muted">
+            ${esc(c.averageOrdersPerWeek || 0)} / week
+          </div>
+
+          ${frequencyReviewBadge(c.frequencyReview)}
 
         </td>
 
@@ -1174,17 +1295,20 @@ function mobileCustomerRows(
             <div class=
               "mobile-metric-label">
 
-              Frequency
+              Set / Actual Freq
 
             </div>
 
             <div class=
               "mobile-metric-value">
 
-              ${esc(
-                c.frequency
-              )}
+              ${esc(c.frequency || '-')} →
+              ${esc(c.actualFrequency || 'F0')}
 
+            </div>
+
+            <div class="muted">
+              ${esc(c.averageOrdersPerWeek || 0)} orders/week
             </div>
 
           </div>
@@ -1970,8 +2094,23 @@ function openCustomerByNo(
 
 
       ${detailCard(
-        'Frequency',
+        'Set Frequency',
         c.frequency
+      )}
+
+
+      ${detailCard(
+        'Actual Frequency',
+        (c.actualFrequency || 'F0') +
+        ' • ' +
+        (c.averageOrdersPerWeek || 0) +
+        '/week'
+      )}
+
+
+      ${detailCard(
+        'Frequency Review',
+        c.frequencyReview || '-'
       )}
 
 
@@ -2010,6 +2149,9 @@ function openCustomerByNo(
 
 
     </div>
+
+
+    ${weeklyFrequencyBreakdown(c)}
 
 
     <div style="
@@ -2616,6 +2758,240 @@ function renderAllExceptions(
 /* =========================================================
 UI COMPONENTS
 ========================================================= */
+
+/* =========================================================
+REPORT DOWNLOADS
+========================================================= */
+
+function ensureDSPReportData() {
+  if (
+    CURRENT_PAGE !== 'dsp' ||
+    !CURRENT_DATA ||
+    !CURRENT_DATA.customers
+  ) {
+    alert('Open a DSP page first, then download the report.');
+    return null;
+  }
+  return CURRENT_DATA;
+}
+
+
+function downloadCSVReport() {
+  const data = ensureDSPReportData();
+  if (!data) return;
+
+  const rows = [
+    [
+      'Customer Name',
+      'BeatRoute Name',
+      'Set Frequency',
+      'Actual Frequency',
+      'Average Orders / Week',
+      'Frequency Review',
+      'Target Days',
+      'Order Days',
+      'Actual KG',
+      'Last Order',
+      'Status'
+    ],
+    ...data.customers.map(c => [
+      c.customerName,
+      c.notRegistered ? 'Not Registered' : (c.beatrouteName || ''),
+      c.frequency,
+      c.actualFrequency || 'F0',
+      c.averageOrdersPerWeek || 0,
+      c.frequencyReview || '',
+      c.targetDays,
+      c.orderDays,
+      c.actualKg,
+      c.lastOrder,
+      c.status
+    ])
+  ];
+
+  const csv = rows
+    .map(row => row.map(csvCell).join(','))
+    .join('\r\n');
+
+  const blob = new Blob(["\ufeff" + csv], {
+    type:'text/csv;charset=utf-8;'
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `818_DSP${data.dsp}_${CURRENT_MONTH}_SCL_Report.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+
+function csvCell(value) {
+  const text = String(value == null ? '' : value);
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+
+function downloadPDFReport() {
+  const data = ensureDSPReportData();
+  if (!data) return;
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert('PDF library is still loading. Please try again in a few seconds.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation:'landscape',
+    unit:'mm',
+    format:'a4'
+  });
+
+  if (typeof doc.autoTable !== 'function') {
+    alert('PDF table library is not available. Please refresh and try again.');
+    return;
+  }
+
+  const s = data.summary;
+  const reviewRows = data.customers.filter(c =>
+    c.frequencyReview === 'REVIEW FREQUENCY' ||
+    c.frequencyReview === 'ACTUAL HIGHER'
+  );
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(17);
+  doc.text('818 VENTURES INC.', 14, 15);
+
+  doc.setFontSize(13);
+  doc.text('DSP Sales & SCL Performance Report', 14, 22);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text(`DSP ${data.dsp} • ${data.monthLabel}`, 14, 28);
+  doc.text(
+    `Working days: ${data.workingDays} • Sales through: ${data.latestSalesDate || '-'}`,
+    14,
+    33
+  );
+
+  doc.autoTable({
+    startY:38,
+    theme:'grid',
+    head:[['SCL Customers','Served','Service %','Not Served','Total KG','On Target','Below Target']],
+    body:[[s.sclCustomers,s.served,s.serviceRate + '%',s.notServed,numberFmt(s.dspSalesKg),s.onTarget,s.belowTarget]],
+    styles:{fontSize:8,cellPadding:2.2},
+    headStyles:{fillColor:[8,122,67]}
+  });
+
+  let y = doc.lastAutoTable.finalY + 7;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text('Customer Performance', 14, y);
+
+  doc.autoTable({
+    startY:y + 3,
+    theme:'striped',
+    head:[[ '#','Customer','BeatRoute','Set','Actual','Avg/Wk','Target','Orders','KG','Last Order','Status' ]],
+    body:data.customers.map(c => [
+      c.no || '',
+      c.customerName,
+      c.notRegistered ? 'Not Registered' : (c.beatrouteName || '-'),
+      c.frequency || '-',
+      c.actualFrequency || 'F0',
+      c.averageOrdersPerWeek || 0,
+      c.targetDays,
+      c.orderDays,
+      numberFmt(c.actualKg),
+      c.lastOrder,
+      c.status
+    ]),
+    styles:{fontSize:6.7,cellPadding:1.7,overflow:'linebreak'},
+    headStyles:{fillColor:[8,122,67]},
+    columnStyles:{1:{cellWidth:35},2:{cellWidth:38}}
+  });
+
+  if (reviewRows.length) {
+    y = doc.lastAutoTable.finalY + 8;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    doc.text('Frequency Review',14,y);
+
+    doc.autoTable({
+      startY:y + 3,
+      theme:'grid',
+      head:[['Customer','Set Frequency','Actual Frequency','Avg Orders / Week','Order Days','Recommendation']],
+      body:reviewRows.map(c => [
+        c.customerName,
+        c.frequency,
+        c.actualFrequency || 'F0',
+        c.averageOrdersPerWeek || 0,
+        c.orderDays,
+        c.frequencyReview
+      ]),
+      styles:{fontSize:7,cellPadding:2},
+      headStyles:{fillColor:[217,178,74],textColor:[20,33,26]}
+    });
+  }
+
+  const exceptions = [
+    ['Jumped Customers', data.jumpedCustomers],
+    ['New / Unassigned Customers', data.newCustomers],
+    ['Not Registered in BeatRoute', data.notRegistered],
+    ['Temporary Sales Mapping', data.temporaryMappings]
+  ];
+
+  exceptions.forEach(([title, rows]) => {
+    if (!rows || !rows.length) return;
+
+    y = doc.lastAutoTable.finalY + 8;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.text(title,14,y);
+
+    doc.autoTable({
+      startY:y + 3,
+      theme:'grid',
+      head:[['Customer','BeatRoute / Temp Name','Assigned DSP','Selling DSP','Order Days','KG','Last Order']],
+      body:rows.map(r => [
+        r.customerName || '',
+        r.tempSalesName || r.beatrouteName || '-',
+        r.assignedDSP || '-',
+        r.sellingDSP || '-',
+        r.orderDays || 0,
+        numberFmt(r.actualKg || 0),
+        r.lastOrder || '-'
+      ]),
+      styles:{fontSize:7,cellPadding:1.8},
+      headStyles:{fillColor:[4,91,48]}
+    });
+  });
+
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i=1; i<=pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.text(
+      `818 DSP ${data.dsp} • ${data.monthLabel} • Page ${i} of ${pageCount}`,
+      14,
+      202
+    );
+  }
+
+  doc.save(`818_DSP${data.dsp}_${CURRENT_MONTH}_SCL_Report.pdf`);
+}
+
+
+function numberFmt(value) {
+  return Number(value || 0).toLocaleString('en-US', {
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+}
+
 
 function heroCard(
   label,

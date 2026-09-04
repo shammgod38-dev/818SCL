@@ -703,6 +703,59 @@ function getDashboardData(
             : 0;
 
 
+        // Actual buying frequency is based on the customer's
+        // real order activity during the observed portion of
+        // the selected month. We normalize to a 6-day workweek
+        // (Mon-Sat), so partial weeks do not unfairly lower it.
+        const observedEndDate =
+          latestSalesDate &&
+          latestSalesDate < endDate
+
+            ? latestSalesDate
+
+            : endDate;
+
+
+        const actualFreq =
+          actualFrequencyAnalysis_(
+            dates,
+            startDate,
+            observedEndDate,
+            tz
+          );
+
+
+        let frequencyReview =
+          'MATCHES';
+
+
+        if (!orderDays) {
+          frequencyReview =
+            'NO ORDER';
+        }
+        else if (
+          actualFreq.frequencyNumber <
+          freqNo
+        ) {
+          frequencyReview =
+            (
+              freqNo -
+              actualFreq.frequencyNumber
+            ) >= 2
+
+              ? 'REVIEW FREQUENCY'
+
+              : 'SLIGHTLY LOWER';
+        }
+        else if (
+          actualFreq.frequencyNumber >
+          freqNo
+        ) {
+          frequencyReview =
+            'ACTUAL HIGHER';
+        }
+
+
         let status =
           'NO ORDER';
 
@@ -741,6 +794,23 @@ function getDashboardData(
             clean_(row[5]),
 
           frequency,
+
+          actualFrequency:
+            actualFreq.frequency,
+
+          actualFrequencyNumber:
+            actualFreq.frequencyNumber,
+
+          averageOrdersPerWeek:
+            actualFreq.averageOrdersPerWeek,
+
+          observedWorkingDays:
+            actualFreq.observedWorkingDays,
+
+          weeklyOrderActivity:
+            actualFreq.weeklyBreakdown,
+
+          frequencyReview,
 
           adsKg:
             number_(row[7]),
@@ -1917,6 +1987,217 @@ function formatDate_(
       tz,
       'MMM d, yyyy'
     );
+}
+
+
+function actualFrequencyAnalysis_(
+  orderDateKeys,
+  startDate,
+  endDate,
+  tz
+) {
+
+  if (
+    !startDate ||
+    !endDate ||
+    endDate < startDate
+  ) {
+
+    return {
+      frequency: 'F0',
+      frequencyNumber: 0,
+      averageOrdersPerWeek: 0,
+      observedWorkingDays: 0,
+      weeklyBreakdown: []
+    };
+  }
+
+
+  const orderSet =
+    new Set(
+      (orderDateKeys || [])
+        .map(String)
+    );
+
+
+  const weeks =
+    {};
+
+
+  let observedWorkingDays =
+    0;
+
+
+  const cursor =
+    new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      startDate.getDate()
+    );
+
+  const end =
+    new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate()
+    );
+
+
+  while (
+    cursor <= end
+  ) {
+
+    const day =
+      cursor.getDay();
+
+    // Sunday is the only non-working day.
+    if (day !== 0) {
+
+      observedWorkingDays++;
+
+      const monday =
+        new Date(cursor);
+
+      const daysFromMonday =
+        day === 0
+          ? 6
+          : day - 1;
+
+      monday.setDate(
+        monday.getDate() -
+        daysFromMonday
+      );
+
+      const weekKey =
+        Utilities.formatDate(
+          monday,
+          tz,
+          'yyyy-MM-dd'
+        );
+
+      if (!weeks[weekKey]) {
+        weeks[weekKey] = {
+          weekStart: weekKey,
+          availableDays: 0,
+          orderDays: 0
+        };
+      }
+
+      weeks[weekKey].availableDays++;
+
+      const dateKey =
+        Utilities.formatDate(
+          cursor,
+          tz,
+          'yyyy-MM-dd'
+        );
+
+      if (
+        orderSet.has(dateKey)
+      ) {
+        weeks[weekKey].orderDays++;
+      }
+    }
+
+    cursor.setDate(
+      cursor.getDate() + 1
+    );
+  }
+
+
+  const orderDays =
+    Object
+      .values(weeks)
+      .reduce(
+        (sum, w) =>
+          sum + w.orderDays,
+        0
+      );
+
+
+  const averageOrdersPerWeek =
+    observedWorkingDays
+
+      ? round2_(
+          orderDays /
+          (
+            observedWorkingDays /
+            6
+          )
+        )
+
+      : 0;
+
+
+  const frequencyNumber =
+    orderDays
+
+      ? Math.max(
+          1,
+          Math.min(
+            6,
+            Math.round(
+              averageOrdersPerWeek
+            )
+          )
+        )
+
+      : 0;
+
+
+  const weeklyBreakdown =
+    Object
+      .values(weeks)
+      .sort(
+        (a,b) =>
+          a.weekStart.localeCompare(
+            b.weekStart
+          )
+      )
+      .map(w => ({
+
+        weekStart:
+          formatDate_(
+            new Date(
+              w.weekStart +
+              'T00:00:00'
+            ),
+            tz
+          ),
+
+        orderDays:
+          w.orderDays,
+
+        availableDays:
+          w.availableDays,
+
+        normalizedFrequency:
+          w.availableDays
+
+            ? Math.min(
+                6,
+                round2_(
+                  (
+                    w.orderDays /
+                    w.availableDays
+                  ) *
+                  6
+                )
+              )
+
+            : 0
+      }));
+
+
+  return {
+    frequency:
+      'F' +
+      frequencyNumber,
+    frequencyNumber,
+    averageOrdersPerWeek,
+    observedWorkingDays,
+    weeklyBreakdown
+  };
 }
 
 

@@ -3,7 +3,7 @@ GITHUB -> GOOGLE APPS SCRIPT API
 Paste your deployed Apps Script /exec URL below.
 ========================================================= */
 
-const API_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+const API_URL = 'https://script.google.com/macros/s/AKfycby10dKZ1j4KMjCsJCgC34li3QLOu-PUDwMbpJuDFxIfXbaeMw4ZT_d88YhyKPX-5AzwUg/exec';
 
 function apiCall(action, params = {}) {
   return new Promise((resolve, reject) => {
